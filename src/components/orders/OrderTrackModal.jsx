@@ -27,7 +27,7 @@ const OrderTrackModal = ({ order, isOpen, onClose }) => {
               <Truck size={12} />
               <span>ARMORED COURIER TELEMETRY</span>
             </div>
-            <h3 id="track-modal-title" style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#ffffff', margin: 0 }}>
+            <h3 id="track-modal-title" style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#111827', margin: 0 }}>
               Live Tracking: Order #{order.id}
             </h3>
           </div>
@@ -116,10 +116,10 @@ const OrderTrackModal = ({ order, isOpen, onClose }) => {
                 Delivery Destination
               </span>
             </div>
-            <p style={{ fontSize: '13px', color: '#ffffff', margin: 0, fontWeight: '600' }}>
+            <p style={{ fontSize: '13px', color: '#111827', margin: 0, fontWeight: '600' }}>
               {order.shippingAddress?.fullName}
             </p>
-            <p style={{ fontSize: '12px', color: '#9ca3af', margin: '2px 0 0 0' }}>
+            <p style={{ fontSize: '12px', color: '#6b7280', margin: '2px 0 0 0' }}>
               {order.shippingAddress?.address}, {order.shippingAddress?.city}, {order.shippingAddress?.country}
             </p>
           </div>
@@ -152,10 +152,10 @@ const OrderTrackModal = ({ order, isOpen, onClose }) => {
                     ✓
                   </div>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#111827' }}>
                       {cp.status}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
                       {cp.location} • <span style={{ color: '#C6A15B' }}>{cp.time}</span>
                     </div>
                   </div>

@@ -94,8 +94,8 @@ const OrderCard = ({
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '10px' }}>
-            <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-              Qty: <strong style={{ color: '#ffffff' }}>{order.totalQuantity || primaryItem.quantity || 1}</strong>
+            <div style={{ fontSize: '12px', color: '#6b7280' }}>
+              Qty: <strong style={{ color: '#111827' }}>{order.totalQuantity || primaryItem.quantity || 1}</strong>
             </div>
             <div className="order-price-val" style={{ fontSize: '16px' }}>
               {formatCurrency(order.total)}

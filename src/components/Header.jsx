@@ -56,11 +56,11 @@ const Header = () => {
       {/* Top Announcement Bar */}
       <div className="announcement-bar">
         <div className="container announcement-content">
-          <span>SUPERLATIVE CHRONOMETER CERTIFIED</span>
+          <span className="announcement-item announcement-item--primary">COMPLIMENTARY INSURED WORLDWIDE DELIVERY</span>
           <span className="announcement-separator">•</span>
-          <span>COMPLIMENTARY INSURED WORLDWIDE DELIVERY</span>
+          <span className="announcement-item">SUPERLATIVE CHRONOMETER CERTIFIED</span>
           <span className="announcement-separator">•</span>
-          <span>6-YEAR INTERNATIONAL GUARANTEE</span>
+          <span className="announcement-item">6-YEAR INTERNATIONAL GUARANTEE</span>
         </div>
       </div>
 
@@ -113,29 +113,15 @@ const Header = () => {
             {/* Account Icon / VIP Badge */}
             <Link
               to="/auth"
-              className="action-btn"
+              className="action-btn header-account-btn"
               aria-label="Client Privilege Account"
               title={user ? `Privilege Client: ${user.name}` : "Sign In or Register"}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              style={{ display: 'inline-flex', alignItems: 'center' }}
             >
               {user ? (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'rgba(198, 161, 91, 0.15)',
-                    border: '1px solid rgba(198, 161, 91, 0.4)',
-                    padding: '3px 10px',
-                    borderRadius: '20px',
-                    color: '#C6A15B',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    letterSpacing: '0.04em'
-                  }}
-                >
+                <span className="header-vip-badge">
                   <LuCrown size={13} />
-                  <span>{user.name.split(' ')[0]}</span>
+                  <span className="header-vip-name">{user.name.split(' ')[0]}</span>
                 </span>
               ) : (
                 <LuUser size={20} />

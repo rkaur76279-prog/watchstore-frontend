@@ -31,7 +31,7 @@ const OrderInvoiceModal = ({ order, isOpen, onClose }) => {
         <div className="orders-modal-header no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Crown size={18} color="#C6A15B" />
-            <h3 id="invoice-modal-title" style={{ fontSize: '18px', color: '#ffffff', margin: 0 }}>
+            <h3 id="invoice-modal-title" style={{ fontSize: '18px', color: '#111827', margin: 0 }}>
               Official Swiss Chronometer Registry Invoice
             </h3>
           </div>
@@ -122,37 +122,39 @@ const OrderInvoiceModal = ({ order, isOpen, onClose }) => {
             </div>
 
             {/* Itemized Table */}
-            <table className="invoice-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '45%' }}>Item Description & Calibre</th>
-                  <th style={{ textAlign: 'center' }}>Serial ID</th>
-                  <th style={{ textAlign: 'center' }}>Qty</th>
-                  <th style={{ textAlign: 'right' }}>Unit Price</th>
-                  <th style={{ textAlign: 'right' }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.items?.map((item, idx) => (
-                  <tr key={idx}>
-                    <td>
-                      <div style={{ fontWeight: '700', color: '#111827' }}>{item.name}</div>
-                      <div style={{ fontSize: '11px', color: '#6b7280' }}>
-                        {item.collection} • {item.dialColor} • {item.caseSize} • {item.calibre || 'Superlative Chronometer'}
-                      </div>
-                    </td>
-                    <td style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: '11px' }}>
-                      {item.serialNumber || 'SN-REG-849102'}
-                    </td>
-                    <td style={{ textAlign: 'center', fontWeight: '600' }}>{item.quantity || 1}</td>
-                    <td style={{ textAlign: 'right' }}>{formatCurrency(item.price)}</td>
-                    <td style={{ textAlign: 'right', fontWeight: '700' }}>
-                      {formatCurrency((item.price || 0) * (item.quantity || 1))}
-                    </td>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', marginBottom: '16px' }}>
+              <table className="invoice-table" style={{ minWidth: '500px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '45%' }}>Item Description & Calibre</th>
+                    <th style={{ textAlign: 'center' }}>Serial ID</th>
+                    <th style={{ textAlign: 'center' }}>Qty</th>
+                    <th style={{ textAlign: 'right' }}>Unit Price</th>
+                    <th style={{ textAlign: 'right' }}>Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {order.items?.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <div style={{ fontWeight: '700', color: '#111827' }}>{item.name}</div>
+                        <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                          {item.collection} • {item.dialColor} • {item.caseSize} • {item.calibre || 'Superlative Chronometer'}
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: '11px' }}>
+                        {item.serialNumber || 'SN-REG-849102'}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: '600' }}>{item.quantity || 1}</td>
+                      <td style={{ textAlign: 'right' }}>{formatCurrency(item.price)}</td>
+                      <td style={{ textAlign: 'right', fontWeight: '700' }}>
+                        {formatCurrency((item.price || 0) * (item.quantity || 1))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Financial Totals */}
             <div className="invoice-totals-row">

@@ -59,10 +59,10 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
               <AlertTriangle size={18} />
             </div>
             <div>
-              <h3 id="cancel-modal-title" style={{ fontSize: '18px', color: '#ffffff', margin: 0 }}>
+              <h3 id="cancel-modal-title" style={{ fontSize: '18px', color: '#111827', margin: 0 }}>
                 Cancel Order #{order.id}
               </h3>
-              <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>
                 Swiss Chronometer Registry • Requisition Cancellation
               </span>
             </div>
@@ -79,8 +79,8 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
             {/* Watch preview */}
             <div
               style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#f9fafb',
+                border: '1px solid #e5e7eb',
                 borderRadius: '10px',
                 padding: '12px 14px',
                 display: 'flex',
@@ -88,7 +88,7 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
                 gap: '12px',
               }}
             >
-              <div className="order-thumb-wrap" style={{ width: '48px', height: '48px' }}>
+              <div className="order-thumb-wrap" style={{ width: '48px', height: '48px', flexShrink: 0 }}>
                 <img
                   src={primaryItem.image || '/watch6.jpg'}
                   alt={primaryItem.name}
@@ -99,10 +99,10 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <h5 style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', margin: 0 }}>
+                <h5 style={{ fontSize: '14px', fontWeight: '600', color: '#111827', margin: 0 }}>
                   {primaryItem.name || 'Swiss Timepiece'}
                 </h5>
-                <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                <span style={{ fontSize: '11px', color: '#6b7280' }}>
                   Total Valuation: <strong style={{ color: '#C6A15B' }}>${order.total?.toLocaleString()}</strong>
                 </span>
               </div>
@@ -111,12 +111,12 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
             {/* Warning alert */}
             <div
               style={{
-                background: 'rgba(239, 68, 68, 0.08)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
                 borderRadius: '8px',
                 padding: '12px 14px',
                 fontSize: '12px',
-                color: '#fca5a5',
+                color: '#991b1b',
                 lineHeight: '1.5',
               }}
             >
@@ -134,16 +134,16 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
                 onChange={(e) => setSelectedReason(e.target.value)}
                 style={{
                   width: '100%',
-                  background: '#0c0f15',
-                  border: '1px solid rgba(198, 161, 91, 0.3)',
+                  background: '#ffffff',
+                  border: '1.5px solid #d1d5db',
                   borderRadius: '6px',
                   padding: '10px 12px',
-                  color: '#ffffff',
+                  color: '#111827',
                   fontSize: '13px',
                 }}
               >
                 {REASON_OPTIONS.map((opt, i) => (
-                  <option key={i} value={opt} style={{ background: '#121620', color: '#ffffff' }}>
+                  <option key={i} value={opt} style={{ background: '#ffffff', color: '#111827' }}>
                     {opt}
                   </option>
                 ))}
@@ -152,7 +152,7 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
 
             {/* Additional note */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9ca3af', fontWeight: '600', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6b7280', fontWeight: '600', marginBottom: '6px' }}>
                 Client Concierge Notes (Optional)
               </label>
               <textarea
@@ -162,11 +162,11 @@ const OrderCancelModal = ({ order, isOpen, onClose, onConfirmCancel }) => {
                 placeholder="Additional instructions for Geneva Treasury..."
                 style={{
                   width: '100%',
-                  background: '#0c0f15',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: '#ffffff',
+                  border: '1.5px solid #d1d5db',
                   borderRadius: '6px',
                   padding: '10px 12px',
-                  color: '#ffffff',
+                  color: '#111827',
                   fontSize: '12px',
                   resize: 'none',
                 }}

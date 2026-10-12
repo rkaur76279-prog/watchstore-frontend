@@ -55,17 +55,18 @@ const OrderDetailsModal = ({
               style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: '22px',
-                color: '#ffffff',
+                color: '#111827',
                 margin: 0,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
+                flexWrap: 'wrap',
               }}
             >
               <span>Order #{order.id}</span>
               <OrderStatusBadge status={order.status} />
             </h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#6b7280', marginTop: '4px', flexWrap: 'wrap' }}>
               <Calendar size={12} color="#C6A15B" />
               <span>Requisition Placed: {order.formattedDate || order.date}</span>
               <span>•</span>
@@ -98,7 +99,7 @@ const OrderDetailsModal = ({
               <h4 style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#C6A15B', fontWeight: '700' }}>
                 Acquired Timepiece ({order.items?.length || 1} Item)
               </h4>
-              <span style={{ fontSize: '11px', color: '#9ca3af' }}>Superlative Precision</span>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>Superlative Precision</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -110,12 +111,12 @@ const OrderDetailsModal = ({
                     alignItems: 'center',
                     gap: '16px',
                     padding: '12px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    background: '#f9fafb',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '10px',
                   }}
                 >
-                  <div className="order-thumb-wrap" style={{ width: '68px', height: '68px' }}>
+                  <div className="order-thumb-wrap" style={{ width: '68px', height: '68px', flexShrink: 0 }}>
                     <img
                       src={item.image || '/watch6.jpg'}
                       alt={item.name}
@@ -126,13 +127,13 @@ const OrderDetailsModal = ({
                     />
                   </div>
 
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
-                        <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff', margin: 0 }}>
+                        <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#111827', margin: 0 }}>
                           {item.name}
                         </h4>
-                        <p style={{ fontSize: '12px', color: '#9ca3af', margin: '2px 0 0 0' }}>
+                        <p style={{ fontSize: '12px', color: '#4b5563', margin: '2px 0 0 0' }}>
                           {item.collection} • {item.dialColor || 'Bespoke Dial'} • {item.caseSize || '41mm'}
                         </p>
                       </div>
@@ -140,7 +141,7 @@ const OrderDetailsModal = ({
                         <div className="order-price-val" style={{ fontSize: '16px' }}>
                           {formatCurrency(item.price)}
                         </div>
-                        <span style={{ fontSize: '11px', color: '#9ca3af' }}>Qty: {item.quantity || 1}</span>
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>Qty: {item.quantity || 1}</span>
                       </div>
                     </div>
 
@@ -149,7 +150,7 @@ const OrderDetailsModal = ({
                         {item.calibre || 'Superlative Chronometer Calibre'}
                       </span>
                       {item.serialNumber && (
-                        <span style={{ fontSize: '10px', color: '#9ca3af', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '10px', color: '#4b5563', background: '#f3f4f6', border: '1px solid #e5e7eb', padding: '2px 8px', borderRadius: '4px' }}>
                           Serial: {item.serialNumber}
                         </span>
                       )}
@@ -161,7 +162,7 @@ const OrderDetailsModal = ({
           </div>
 
           {/* Grid: Shipping Information & Payment / Financials */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
             {/* Shipping Coordinates */}
             <div className="orders-glass-card" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
@@ -171,8 +172,8 @@ const OrderDetailsModal = ({
                 </h4>
               </div>
 
-              <div style={{ fontSize: '12px', color: '#d1d5db', lineHeight: '1.6' }}>
-                <p style={{ fontWeight: '600', color: '#ffffff', margin: 0 }}>
+              <div style={{ fontSize: '12px', color: '#374151', lineHeight: '1.6' }}>
+                <p style={{ fontWeight: '600', color: '#111827', margin: 0 }}>
                   {order.shippingAddress?.fullName || 'Client Privilege Member'}
                 </p>
                 <p style={{ margin: 0 }}>{order.shippingAddress?.address || 'Quai du Mont-Blanc 19'}</p>
@@ -181,17 +182,17 @@ const OrderDetailsModal = ({
                 </p>
                 <p style={{ margin: 0 }}>{order.shippingAddress?.country || 'Switzerland'}</p>
                 {order.shippingAddress?.phone && (
-                  <p style={{ color: '#9ca3af', margin: '4px 0 0 0' }}>Tel: {order.shippingAddress.phone}</p>
+                  <p style={{ color: '#6b7280', margin: '4px 0 0 0' }}>Tel: {order.shippingAddress.phone}</p>
                 )}
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', marginTop: '14px' }}>
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                  <span style={{ color: '#9ca3af' }}>Armored Courier:</span>
-                  <span style={{ color: '#ffffff', fontWeight: '600' }}>{order.courier?.name || 'Malca-Amit'}</span>
+                  <span style={{ color: '#6b7280' }}>Armored Courier:</span>
+                  <span style={{ color: '#111827', fontWeight: '600' }}>{order.courier?.name || 'Malca-Amit'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                  <span style={{ color: '#9ca3af' }}>Consignment Tracking:</span>
+                  <span style={{ color: '#6b7280' }}>Consignment Tracking:</span>
                   <span style={{ color: '#C6A15B', fontFamily: 'monospace', fontWeight: '600' }}>
                     {order.courier?.trackingNumber || 'MA-CH-9482104'}
                   </span>
@@ -209,21 +210,21 @@ const OrderDetailsModal = ({
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9ca3af' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280' }}>
                   <span>Subtotal:</span>
-                  <span style={{ color: '#ffffff' }}>{formatCurrency(order.subtotal || order.total)}</span>
+                  <span style={{ color: '#111827' }}>{formatCurrency(order.subtotal || order.total)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9ca3af' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280' }}>
                   <span>White-Glove Armored Courier:</span>
-                  <span style={{ color: '#2ecc71', fontWeight: '600' }}>Complimentary ($0.00)</span>
+                  <span style={{ color: '#16a34a', fontWeight: '600' }}>Complimentary ($0.00)</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9ca3af' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280' }}>
                   <span>Swiss COSC Registry Seal:</span>
-                  <span style={{ color: '#2ecc71', fontWeight: '600' }}>Included ($0.00)</span>
+                  <span style={{ color: '#16a34a', fontWeight: '600' }}>Included ($0.00)</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#9ca3af' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280' }}>
                   <span>Geneva Duty & VAT:</span>
-                  <span style={{ color: '#ffffff' }}>$0.00 (Privilege Exempt)</span>
+                  <span style={{ color: '#111827' }}>$0.00 (Privilege Exempt)</span>
                 </div>
 
                 <div
@@ -237,19 +238,19 @@ const OrderDetailsModal = ({
                     fontWeight: '700',
                   }}
                 >
-                  <span style={{ color: '#ffffff' }}>Total Paid:</span>
+                  <span style={{ color: '#111827' }}>Total Paid:</span>
                   <span style={{ color: '#C6A15B' }}>{formatCurrency(order.total)}</span>
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px', marginTop: '12px', fontSize: '11px' }}>
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '12px', marginTop: '12px', fontSize: '11px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ color: '#9ca3af' }}>Payment Channel:</span>
-                  <span style={{ color: '#ffffff' }}>{order.paymentMethod || 'Geneva Escrow Wire'}</span>
+                  <span style={{ color: '#6b7280' }}>Payment Channel:</span>
+                  <span style={{ color: '#111827' }}>{order.paymentMethod || 'Geneva Escrow Wire'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#9ca3af' }}>Transaction Ref:</span>
-                  <span style={{ color: '#9ca3af', fontFamily: 'monospace' }}>{order.transactionRef || 'TXN-902184'}</span>
+                  <span style={{ color: '#6b7280' }}>Transaction Ref:</span>
+                  <span style={{ color: '#6b7280', fontFamily: 'monospace' }}>{order.transactionRef || 'TXN-902184'}</span>
                 </div>
               </div>
             </div>
@@ -269,10 +270,10 @@ const OrderDetailsModal = ({
           >
             <ShieldCheck size={28} color="#C6A15B" style={{ flexShrink: 0 }} />
             <div style={{ fontSize: '12px' }}>
-              <strong style={{ color: '#ffffff', display: 'block' }}>
+              <strong style={{ color: '#111827', display: 'block' }}>
                 {order.warrantyPeriod || '6-Year International Superlative Guarantee'}
               </strong>
-              <span style={{ color: '#9ca3af' }}>
+              <span style={{ color: '#4b5563' }}>
                 Protected by Swiss Chronometer Registry Geneva. Serial verification ID: {order.chronometerCertificate}
               </span>
             </div>

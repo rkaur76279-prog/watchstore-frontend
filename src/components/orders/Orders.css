@@ -1138,6 +1138,151 @@
 }
 
 /* ==========================================================================
+   RESPONSIVE ENHANCEMENTS (TABLET & MOBILE)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .orders-light-page {
+    padding: 20px 14px 48px;
+  }
+
+  .orders-header-wrap {
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .orders-main-title {
+    font-size: 24px;
+  }
+
+  .orders-header-actions {
+    width: 100%;
+  }
+
+  .orders-header-actions .order-btn-ghost {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .orders-toolbar-wrap {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .orders-search-box {
+    max-width: 100%;
+  }
+
+  .orders-filter-chips {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .orders-filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .orders-filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .orders-modal-dialog {
+    max-height: calc(100dvh - 24px);
+    border-radius: 14px;
+  }
+
+  .orders-modal-header {
+    padding: 14px 18px;
+  }
+
+  .orders-modal-body {
+    padding: 16px 14px;
+    gap: 16px;
+  }
+
+  .orders-modal-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .orders-modal-footer > div {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .orders-modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .orders-invoice-paper {
+    padding: 20px 16px;
+  }
+
+  .invoice-header-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .invoice-meta-block {
+    text-align: left;
+  }
+
+  .invoice-client-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .invoice-seal-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .orders-light-page {
+    padding: 16px 10px 40px;
+  }
+
+  .orders-metric-card {
+    padding: 14px 16px;
+  }
+
+  .order-mobile-card {
+    padding: 14px;
+  }
+
+  .order-mobile-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .order-mobile-card-header > div:last-child {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .order-mobile-card-footer > div {
+    flex-direction: column;
+  }
+
+  .order-mobile-card-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
    PRINT
    ========================================================================== */
 @media print {

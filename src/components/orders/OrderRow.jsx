@@ -75,12 +75,12 @@ const OrderRow = ({
 
       {/* 3. Order Date */}
       <td>
-        <span style={{ color: '#d1d5db', fontSize: '13px' }}>{order.formattedDate}</span>
+        <span style={{ color: '#4b5563', fontSize: '13px' }}>{order.formattedDate}</span>
       </td>
 
       {/* 4. Quantity */}
       <td>
-        <span style={{ color: '#ffffff', fontWeight: '600' }}>
+        <span style={{ color: '#111827', fontWeight: '600' }}>
           {order.totalQuantity || primaryItem.quantity || 1}
         </span>
       </td>
