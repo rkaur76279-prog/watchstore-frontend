@@ -108,7 +108,7 @@ const Footer = () => {
           </div>
 
           {/* LEGAL */}
-          <div className="footer-col">
+          {/* <div className="footer-col">
             <h4 className="footer-col-title">LEGAL</h4>
             <ul className="footer-links-list">
               <li><Link to="/shop">Privacy Policy</Link></li>
@@ -116,7 +116,7 @@ const Footer = () => {
               <li><Link to="/shop">Authenticity Guarantee</Link></li>
               <li><Link to="/shop">Cookie Settings</Link></li>
             </ul>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer Bottom */}
