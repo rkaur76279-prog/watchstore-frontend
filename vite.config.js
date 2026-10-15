@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://watchstore-backend-q6so.onrender.com',
+        target: 'https://watchstore-backend-q6so.onrender.com/',
         changeOrigin: true,
         secure: false,
       },
