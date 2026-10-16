@@ -1,228 +1,372 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { IoIosStar, IoIosClose } from 'react-icons/io';
-import { LuCheck, LuShieldCheck, LuLoader,LuPencil, LuTrash2, LuChevronDown,LuAlertCircle } from 'react-icons/lu';
+import {
+  LuCheck,
+  LuShieldCheck,
+  LuLoader,
+  LuPencil,
+  LuTrash2,
+  LuChevronDown,
+  LuCircleAlert,
+} from 'react-icons/lu';
 import Rating from './Rating';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE = '/api';
+const REVIEWS_PER_PAGE = 6;
+
+const DEFAULT_BREAKDOWN = { 5: 82, 4: 12, 3: 4, 2: 1, 1: 1 };
+
+async function readJsonResponse(response) {
+  const text = await response.text();
+
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      response.status === 404
+        ? 'Reviews API route was not found (404). Check that the backend route exists and is deployed.'
+        : `The server returned a non-JSON response (HTTP ${response.status}). Check your API/backend configuration.`
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.error ||
+        `Request failed with HTTP ${response.status}.`
+    );
+  }
+
+  return data;
+}
 
 const ReviewSection = ({ product }) => {
   const { user, token, isAuthenticated } = useAuth();
+  const productId = product?.id ?? product?._id;
 
-  // State
   const [reviews, setReviews] = useState([]);
-  const [averageRating, setAverageRating] = useState(product?.rating || 5.0);
-  const [totalReviews, setTotalReviews] = useState(product?.reviews || 0);
-  const [ratingBreakdownPct, setRatingBreakdownPct] = useState(
-    product?.ratingBreakdown || { 5: 82, 4: 12, 3: 4, 2: 1, 1: 1 }
+  const [averageRating, setAverageRating] = useState(
+    Number(product?.rating ?? 5)
   );
+  const [totalReviews, setTotalReviews] = useState(
+    Number(product?.reviews ?? 0)
+  );
+  const [ratingBreakdownPct, setRatingBreakdownPct] = useState(
+    product?.ratingBreakdown || DEFAULT_BREAKDOWN
+  );
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [sort, setSort] = useState('recent');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  // Modal
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
-  // Eligibility
   const [canReview, setCanReview] = useState(false);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const [userReview, setUserReview] = useState(null);
 
-  // Edit / Delete
   const [editingReview, setEditingReview] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deletingReview, setDeletingReview] = useState(false);
 
-  // Form
-  const [newReview, setNewReview] = useState({ rating: 5, title: '', comment: '' });
+  const [newReview, setNewReview] = useState({
+    rating: 5,
+    title: '',
+    comment: '',
+  });
 
-  const productId = product?.id;
+  const submitTimeoutRef = useRef(null);
 
-  const fetchReviews = useCallback(async (sortOpt = sort, pageOpt = 1, append = false) => {
-    if (!productId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(
-        `${API_BASE}/products/${productId}/reviews?sort=${sortOpt}&page=${pageOpt}&limit=6`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+  useEffect(() => {
+    return () => {
+      if (submitTimeoutRef.current) {
+        clearTimeout(submitTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const fetchReviews = useCallback(
+    async (sortOpt = 'recent', pageOpt = 1, append = false) => {
+      if (!productId) {
+        setReviews([]);
+        setLoading(false);
+        setError('Product information is missing, so reviews cannot be loaded.');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      try {
+        const query = new URLSearchParams({
+          sort: sortOpt,
+          page: String(pageOpt),
+          limit: String(REVIEWS_PER_PAGE),
+        });
+
+        const response = await fetch(
+          `${API_BASE}/products/${encodeURIComponent(productId)}/reviews?${query.toString()}`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
+        const data = await readJsonResponse(response);
+
+        if (data.success !== true) {
+          throw new Error(data.message || 'The server could not load reviews.');
         }
-      );
-      const data = await res.json();
-      if (data.success) {
-        if (append) {
-          setReviews((prev) => [...prev, ...data.reviews]);
-        } else {
-          setReviews(data.reviews || []);
+
+        const fetchedReviews = Array.isArray(data.reviews) ? data.reviews : [];
+
+        setReviews((previous) =>
+          append ? [...previous, ...fetchedReviews] : fetchedReviews
+        );
+
+        setAverageRating((previous) => {
+          const value = Number(data.averageRating);
+          return data.averageRating != null && Number.isFinite(value)
+            ? value
+            : previous;
+        });
+
+        setTotalReviews((previous) => {
+          const value = Number(data.totalReviews);
+          return data.totalReviews != null && Number.isFinite(value)
+            ? value
+            : previous;
+        });
+
+        if (data.ratingBreakdownPct && typeof data.ratingBreakdownPct === 'object') {
+          setRatingBreakdownPct(data.ratingBreakdownPct);
         }
-        setAverageRating(data.averageRating ?? averageRating);
-        setTotalReviews(data.totalReviews ?? totalReviews);
-        setRatingBreakdownPct(data.ratingBreakdownPct || ratingBreakdownPct);
-        setTotalPages(data.totalPages || 1);
-        setHasMore(data.hasMore || false);
+
+        setHasMore(Boolean(data.hasMore));
         setUserReview(data.userReview || null);
+
         if (data.userReview) {
           setAlreadyReviewed(true);
           setCanReview(false);
+        } else {
+          setAlreadyReviewed(false);
         }
-      } else {
-        setError(data.message || 'Failed to load reviews');
+      } catch (err) {
+        setError(err?.message || 'Unable to load reviews.');
+        if (!append) {
+          setReviews(Array.isArray(product?.customerReviews) ? product.customerReviews : []);
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError('Unable to load reviews. Showing cached data.');
-      // Fallback to product data
-      setReviews(product?.customerReviews || []);
-    } finally {
-      setLoading(false);
-    }
-  }, [productId, token]);
+    },
+    [productId, token, product?.customerReviews]
+  );
 
   const fetchEligibility = useCallback(async () => {
-    if (!isAuthenticated || !token || !productId) return;
+    if (!isAuthenticated || !token || !productId) {
+      setCanReview(false);
+      setAlreadyReviewed(false);
+      setUserReview(null);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/products/${productId}/reviews/eligibility`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const response = await fetch(
+        `${API_BASE}/products/${encodeURIComponent(productId)}/reviews/eligibility`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await readJsonResponse(response);
+
       if (data.success) {
-        setCanReview(data.canReview);
-        setAlreadyReviewed(data.alreadyReviewed);
-        if (data.existingReview) setUserReview(data.existingReview);
+        setCanReview(Boolean(data.canReview));
+        setAlreadyReviewed(Boolean(data.alreadyReviewed));
+        setUserReview(data.existingReview || data.userReview || null);
       }
-    } catch {
-      // Not critical
+    } catch (err) {
+      // Keep the review list usable even if the optional eligibility route is unavailable.
+      console.warn('Could not check review eligibility:', err?.message || err);
     }
   }, [isAuthenticated, token, productId]);
 
   useEffect(() => {
-    fetchReviews('recent', 1);
+    setReviews([]);
+    setPage(1);
+    setHasMore(false);
+    setCanReview(false);
+    setAlreadyReviewed(false);
+    setUserReview(null);
+
+    fetchReviews('recent', 1, false);
     fetchEligibility();
-  }, [productId, token]);
+  }, [fetchReviews, fetchEligibility]);
 
   const handleSortChange = (newSort) => {
     setSort(newSort);
     setPage(1);
-    fetchReviews(newSort, 1);
+    fetchReviews(newSort, 1, false);
   };
 
   const handleLoadMore = () => {
+    if (loading || !hasMore) return;
     const nextPage = page + 1;
     setPage(nextPage);
     fetchReviews(sort, nextPage, true);
   };
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
+  const handleSubmitReview = async (event) => {
+    event.preventDefault();
     setSubmitError('');
-    if (!newReview.title.trim() || !newReview.comment.trim()) {
-      setSubmitError('Please fill in all fields.');
+
+    if (!productId) {
+      setSubmitError('Product information is missing.');
       return;
     }
-    if (!isAuthenticated) {
+
+    if (!newReview.title.trim() || !newReview.comment.trim()) {
+      setSubmitError('Please fill in the headline and review fields.');
+      return;
+    }
+
+    if (!isAuthenticated || !token) {
       setSubmitError('You must be signed in to submit a review.');
       return;
     }
 
     setReviewSubmitting(true);
+
     try {
-      const res = await fetch(`${API_BASE}/products/${productId}/reviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newReview),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setReviewSubmitted(true);
-        setAlreadyReviewed(true);
-        setCanReview(false);
-        setUserReview(data.review);
-        setTimeout(() => {
-          setReviewSubmitted(false);
-          setIsWriteModalOpen(false);
-          setNewReview({ rating: 5, title: '', comment: '' });
-          fetchReviews(sort, 1);
-        }, 1800);
-      } else {
-        setSubmitError(data.message || 'Failed to submit review.');
+      const response = await fetch(
+        `${API_BASE}/products/${encodeURIComponent(productId)}/reviews`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rating: Number(newReview.rating),
+            title: newReview.title.trim(),
+            comment: newReview.comment.trim(),
+          }),
+        }
+      );
+      const data = await readJsonResponse(response);
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to submit review.');
       }
-    } catch {
-      setSubmitError('Failed to submit review. Please try again.');
+
+      setReviewSubmitted(true);
+      setAlreadyReviewed(true);
+      setCanReview(false);
+      setUserReview(data.review || null);
+
+      submitTimeoutRef.current = setTimeout(() => {
+        setReviewSubmitted(false);
+        setIsWriteModalOpen(false);
+        setNewReview({ rating: 5, title: '', comment: '' });
+        fetchReviews(sort, 1, false);
+      }, 1600);
+    } catch (err) {
+      setSubmitError(err?.message || 'Failed to submit review. Please try again.');
     } finally {
       setReviewSubmitting(false);
     }
   };
 
-  const handleUpdateReview = async (e) => {
-    e.preventDefault();
-    if (!editingReview) return;
+  const handleUpdateReview = async (event) => {
+    event.preventDefault();
+    if (!editingReview?._id && !editingReview?.id) return;
+
+    const reviewId = editingReview._id || editingReview.id;
     setReviewSubmitting(true);
     setSubmitError('');
+
     try {
-      const res = await fetch(`${API_BASE}/reviews/${editingReview._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          rating: editingReview.rating,
-          title: editingReview.title,
-          comment: editingReview.comment,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setEditingReview(null);
-        fetchReviews(sort, 1);
-      } else {
-        setSubmitError(data.message || 'Update failed.');
+      const response = await fetch(
+        `${API_BASE}/reviews/${encodeURIComponent(reviewId)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rating: Number(editingReview.rating),
+            title: String(editingReview.title || '').trim(),
+            comment: String(editingReview.comment || '').trim(),
+          }),
+        }
+      );
+      const data = await readJsonResponse(response);
+
+      if (!data.success) {
+        throw new Error(data.message || 'Update failed.');
       }
-    } catch {
-      setSubmitError('Update failed. Please try again.');
+
+      setEditingReview(null);
+      setSubmitError('');
+      await fetchReviews(sort, 1, false);
+    } catch (err) {
+      setSubmitError(err?.message || 'Update failed. Please try again.');
     } finally {
       setReviewSubmitting(false);
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
+    if (!reviewId || !token) return;
+
+    setDeletingReview(true);
+    setDeleteError('');
+
     try {
-      const res = await fetch(`${API_BASE}/reviews/${reviewId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setDeleteConfirmId(null);
-        setAlreadyReviewed(false);
-        setCanReview(true);
-        setUserReview(null);
-        fetchReviews(sort, 1);
+      const response = await fetch(
+        `${API_BASE}/reviews/${encodeURIComponent(reviewId)}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await readJsonResponse(response);
+
+      if (!data.success) {
+        throw new Error(data.message || 'Could not delete the review.');
       }
-    } catch {
-      // Handle error silently
+
+      setDeleteConfirmId(null);
+      setAlreadyReviewed(false);
+      setCanReview(false);
+      setUserReview(null);
+      await fetchReviews(sort, 1, false);
+      await fetchEligibility();
+    } catch (err) {
+      setDeleteError(err?.message || 'Could not delete the review. Please try again.');
+    } finally {
+      setDeletingReview(false);
     }
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    try {
-      return new Date(dateStr).toLocaleDateString('en-US', {
-        month: 'short',
-        day: '2-digit',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return String(dateString);
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
   };
 
   const renderStarPicker = (currentRating, onChange) => (
@@ -233,14 +377,22 @@ const ReviewSection = ({ product }) => {
           type="button"
           className="rating-star-btn"
           onClick={() => onChange(star)}
-          aria-label={`${star} stars`}
+          aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
+          aria-pressed={star === currentRating}
         >
-          <IoIosStar size={24} color={star <= currentRating ? '#C6A15B' : '#D1D5DB'} />
+          <IoIosStar
+            size={24}
+            color={star <= currentRating ? '#C6A15B' : '#D1D5DB'}
+          />
         </button>
       ))}
       <span className="rating-picker-val">{currentRating} of 5 Stars</span>
     </div>
   );
+
+  const normalizedAverageRating = Number.isFinite(Number(averageRating))
+    ? Number(averageRating)
+    : 0;
 
   return (
     <section id="reviews-section" className="reviews-section">
@@ -249,29 +401,38 @@ const ReviewSection = ({ product }) => {
         <h2 className="section-heading">Customer Reviews</h2>
       </div>
 
-      {/* Ratings Summary Box */}
       <div className="reviews-summary-card">
         <div className="reviews-score-col">
-          <span className="reviews-score-big">{averageRating.toFixed(1)}</span>
+          <span className="reviews-score-big">
+            {normalizedAverageRating.toFixed(1)}
+          </span>
           <span className="reviews-score-max">/ 5.0</span>
           <div style={{ marginTop: '8px', marginBottom: '8px' }}>
-            <Rating rating={averageRating} size={18} showText={false} />
+            <Rating rating={normalizedAverageRating} size={18} showText={false} />
           </div>
-          <span className="reviews-total-count">Based on {totalReviews} verified purchases</span>
-          {isAuthenticated && !alreadyReviewed && (
+          <span className="reviews-total-count">
+            Based on {totalReviews} reviews
+          </span>
+
+          {isAuthenticated && canReview && !alreadyReviewed && (
             <button
               type="button"
               className="btn btn-primary btn-write-review"
-              onClick={() => setIsWriteModalOpen(true)}
+              onClick={() => {
+                setSubmitError('');
+                setIsWriteModalOpen(true);
+              }}
             >
               WRITE A REVIEW
             </button>
           )}
+
           {isAuthenticated && alreadyReviewed && (
             <div className="review-already-badge">
               <LuCheck size={13} color="#22c55e" /> You reviewed this timepiece
             </div>
           )}
+
           {!isAuthenticated && (
             <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>
               Sign in to write a review
@@ -281,12 +442,19 @@ const ReviewSection = ({ product }) => {
 
         <div className="reviews-bars-col">
           {[5, 4, 3, 2, 1].map((star) => {
-            const pct = ratingBreakdownPct[star] || 0;
+            const rawPct = Number(ratingBreakdownPct?.[star] || 0);
+            const pct = Number.isFinite(rawPct)
+              ? Math.min(100, Math.max(0, rawPct))
+              : 0;
+
             return (
               <div key={star} className="review-bar-row">
                 <span className="review-bar-label">{star} stars</span>
                 <div className="review-bar-track">
-                  <div className="review-bar-fill" style={{ width: `${pct}%` }} />
+                  <div
+                    className="review-bar-fill"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
                 <span className="review-bar-pct">{pct}%</span>
               </div>
@@ -295,40 +463,53 @@ const ReviewSection = ({ product }) => {
         </div>
       </div>
 
-      {/* Sort Controls */}
       <div className="reviews-sort-bar">
         <span className="reviews-sort-label">Sort by:</span>
-        {['recent', 'highest', 'lowest'].map((opt) => (
+        {[
+          { value: 'recent', label: 'Most Recent' },
+          { value: 'highest', label: 'Highest Rated' },
+          { value: 'lowest', label: 'Lowest Rated' },
+        ].map((option) => (
           <button
-            key={opt}
+            key={option.value}
             type="button"
-            className={`reviews-sort-btn ${sort === opt ? 'active' : ''}`}
-            onClick={() => handleSortChange(opt)}
+            className={`reviews-sort-btn ${sort === option.value ? 'active' : ''}`}
+            onClick={() => handleSortChange(option.value)}
+            aria-pressed={sort === option.value}
           >
-            {opt === 'recent' ? 'Most Recent' : opt === 'highest' ? 'Highest Rated' : 'Lowest Rated'}
+            {option.label}
           </button>
         ))}
       </div>
 
-      {/* Review Cards */}
       {loading && reviews.length === 0 ? (
         <div className="reviews-loading">
           <LuLoader size={22} className="reviews-spinner" color="#C6A15B" />
-          <span>Loading appraisals…</span>
+          <span>Loading reviews…</span>
         </div>
       ) : error ? (
-        <div className="reviews-error-state">
-          <LuAlertCircle size={18} />
+        <div className="reviews-error-state" role="alert">
+          <LuCircleAlert size={18} />
           <span>{error}</span>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => fetchReviews(sort, 1, false)}
+          >
+            Retry
+          </button>
         </div>
       ) : reviews.length === 0 ? (
         <div className="reviews-empty-state">
           <p>No reviews yet. Be the first to share your impressions.</p>
-          {isAuthenticated && !alreadyReviewed && (
+          {isAuthenticated && canReview && !alreadyReviewed && (
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => setIsWriteModalOpen(true)}
+              onClick={() => {
+                setSubmitError('');
+                setIsWriteModalOpen(true);
+              }}
               style={{ marginTop: '12px' }}
             >
               WRITE THE FIRST REVIEW
@@ -337,19 +518,30 @@ const ReviewSection = ({ product }) => {
         </div>
       ) : (
         <div className="reviews-cards-grid">
-          {reviews.map((rev) => {
-            const isOwner = user && (rev.userId === user.id || rev.userId === user._id);
+          {reviews.map((review, index) => {
+            const reviewId = review._id || review.id || `review-${index}`;
+            const reviewUserId =
+              typeof review.userId === 'object'
+                ? review.userId?._id || review.userId?.id
+                : review.userId;
+            const currentUserId = user?.id || user?._id;
+            const isOwner =
+              Boolean(currentUserId) &&
+              Boolean(reviewUserId) &&
+              String(reviewUserId) === String(currentUserId);
+            const authorName = review.userName || review.author || 'Customer';
+
             return (
-              <div key={rev._id || rev.id} className="review-card">
+              <div key={reviewId} className="review-card">
                 <div className="review-card-header">
                   <div className="review-author-group">
                     <div className="review-author-avatar">
-                      {(rev.userName || rev.author || 'C').charAt(0)}
+                      {authorName.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <div className="review-author-name-row">
-                        <strong className="review-author-name">{rev.userName || rev.author}</strong>
-                        {(rev.verifiedPurchase || rev.verified) && (
+                        <strong className="review-author-name">{authorName}</strong>
+                        {(review.verifiedPurchase || review.verified) && (
                           <span className="review-verified-badge">
                             <LuShieldCheck size={12} color="#C6A15B" />
                             Verified Buyer
@@ -357,27 +549,38 @@ const ReviewSection = ({ product }) => {
                         )}
                       </div>
                       <span className="review-date">
-                        {rev.createdAt ? formatDate(rev.createdAt) : (rev.date || '')}
+                        {review.createdAt
+                          ? formatDate(review.createdAt)
+                          : review.date || ''}
                       </span>
                     </div>
                   </div>
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Rating rating={rev.rating} size={14} showText={false} />
+                    <Rating rating={Number(review.rating) || 0} size={14} showText={false} />
                     {isOwner && (
                       <div className="review-owner-actions">
                         <button
                           type="button"
                           className="review-owner-btn"
-                          onClick={() => setEditingReview({ ...rev })}
+                          onClick={() => {
+                            setSubmitError('');
+                            setEditingReview({ ...review });
+                          }}
                           title="Edit review"
+                          aria-label="Edit review"
                         >
                           <LuPencil size={13} />
                         </button>
                         <button
                           type="button"
                           className="review-owner-btn danger"
-                          onClick={() => setDeleteConfirmId(rev._id || rev.id)}
+                          onClick={() => {
+                            setDeleteError('');
+                            setDeleteConfirmId(review._id || review.id);
+                          }}
                           title="Delete review"
+                          aria-label="Delete review"
                         >
                           <LuTrash2 size={13} />
                         </button>
@@ -385,24 +588,28 @@ const ReviewSection = ({ product }) => {
                     )}
                   </div>
                 </div>
-                <h4 className="review-card-title">{rev.title}</h4>
-                <p className="review-card-text">{rev.comment}</p>
+
+                {review.title && <h4 className="review-card-title">{review.title}</h4>}
+                <p className="review-card-text">{review.comment}</p>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Load More */}
-      {hasMore && !loading && (
+      {hasMore && !loading && !error && (
         <div style={{ textAlign: 'center', marginTop: '24px' }}>
-          <button type="button" className="btn btn-secondary reviews-load-more" onClick={handleLoadMore}>
+          <button
+            type="button"
+            className="btn btn-secondary reviews-load-more"
+            onClick={handleLoadMore}
+            disabled={loading}
+          >
             <LuChevronDown size={16} /> Load More Reviews
           </button>
         </div>
       )}
 
-      {/* Loading More Indicator */}
       {loading && reviews.length > 0 && (
         <div className="reviews-loading" style={{ marginTop: '16px' }}>
           <LuLoader size={16} className="reviews-spinner" color="#C6A15B" />
@@ -410,70 +617,98 @@ const ReviewSection = ({ product }) => {
         </div>
       )}
 
-      {/* ── Write a Review Modal ── */}
       {isWriteModalOpen && (
         <>
-          <div className="drawer-backdrop active" onClick={() => setIsWriteModalOpen(false)} />
-          <div className="review-modal">
+          <div
+            className="drawer-backdrop active"
+            onClick={() => {
+              if (!reviewSubmitting) setIsWriteModalOpen(false);
+            }}
+          />
+          <div className="review-modal" role="dialog" aria-modal="true" aria-labelledby="write-review-title">
             <button
+              type="button"
               className="review-modal-close"
               onClick={() => setIsWriteModalOpen(false)}
               aria-label="Close modal"
+              disabled={reviewSubmitting}
             >
               <IoIosClose size={26} />
             </button>
 
             <div className="review-modal-header">
               <span className="section-label">SHARE YOUR EXPERIENCE</span>
-              <h3 className="review-modal-title">Review the {product?.name}</h3>
+              <h3 id="write-review-title" className="review-modal-title">
+                Review the {product?.name || 'product'}
+              </h3>
             </div>
 
             {reviewSubmitted ? (
               <div className="review-modal-success">
                 <LuCheck size={32} color="#22c55e" />
-                <h4>Appraisal Received</h4>
-                <p>Thank you for contributing your perspective to the horological community.</p>
+                <h4>Review received</h4>
+                <p>Thank you for sharing your experience.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmitReview} className="review-form">
                 {submitError && (
-                  <div className="review-form-error">
-                    <LuAlertCircle size={14} /> {submitError}
+                  <div className="review-form-error" role="alert">
+                    <LuCircleAlert size={14} /> {submitError}
                   </div>
                 )}
+
                 <div className="form-group">
                   <label>Overall Rating</label>
-                  {renderStarPicker(newReview.rating, (r) => setNewReview({ ...newReview, rating: r }))}
+                  {renderStarPicker(newReview.rating, (rating) =>
+                    setNewReview((previous) => ({ ...previous, rating }))
+                  )}
                 </div>
+
                 <div className="form-group">
-                  <label>Review Headline</label>
+                  <label htmlFor="new-review-title">Review Headline</label>
                   <input
+                    id="new-review-title"
                     type="text"
                     required
+                    maxLength={120}
                     placeholder="e.g. Exceptional finishing and balance"
                     value={newReview.title}
-                    onChange={(e) => setNewReview({ ...newReview, title: e.target.value })}
+                    onChange={(event) =>
+                      setNewReview((previous) => ({
+                        ...previous,
+                        title: event.target.value,
+                      }))
+                    }
                     className="account-input"
                   />
                 </div>
+
                 <div className="form-group">
-                  <label>Detailed Appraisal</label>
+                  <label htmlFor="new-review-comment">Detailed Review</label>
                   <textarea
+                    id="new-review-comment"
                     required
                     rows={4}
-                    placeholder="Describe your impressions of the dial, movement accuracy, wrist presence…"
+                    maxLength={3000}
+                    placeholder="Describe your experience with this product…"
                     value={newReview.comment}
-                    onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                    onChange={(event) =>
+                      setNewReview((previous) => ({
+                        ...previous,
+                        comment: event.target.value,
+                      }))
+                    }
                     className="account-input"
                   />
                 </div>
+
                 <button
                   type="submit"
                   disabled={reviewSubmitting}
                   className="btn btn-primary"
                   style={{ width: '100%', marginTop: '12px' }}
                 >
-                  {reviewSubmitting ? 'Submitting…' : 'SUBMIT APPRAISAL'}
+                  {reviewSubmitting ? 'Submitting…' : 'SUBMIT REVIEW'}
                 </button>
               </form>
             )}
@@ -481,48 +716,80 @@ const ReviewSection = ({ product }) => {
         </>
       )}
 
-      {/* ── Edit Review Modal ── */}
       {editingReview && (
         <>
-          <div className="drawer-backdrop active" onClick={() => setEditingReview(null)} />
-          <div className="review-modal">
-            <button className="review-modal-close" onClick={() => setEditingReview(null)} aria-label="Close">
+          <div
+            className="drawer-backdrop active"
+            onClick={() => {
+              if (!reviewSubmitting) setEditingReview(null);
+            }}
+          />
+          <div className="review-modal" role="dialog" aria-modal="true" aria-labelledby="edit-review-title">
+            <button
+              type="button"
+              className="review-modal-close"
+              onClick={() => setEditingReview(null)}
+              aria-label="Close edit modal"
+              disabled={reviewSubmitting}
+            >
               <IoIosClose size={26} />
             </button>
+
             <div className="review-modal-header">
-              <span className="section-label">EDIT YOUR APPRAISAL</span>
-              <h3 className="review-modal-title">Update Review</h3>
+              <span className="section-label">EDIT YOUR REVIEW</span>
+              <h3 id="edit-review-title" className="review-modal-title">Update Review</h3>
             </div>
+
             <form onSubmit={handleUpdateReview} className="review-form">
               {submitError && (
-                <div className="review-form-error">
-                  <LuAlertCircle size={14} /> {submitError}
+                <div className="review-form-error" role="alert">
+                  <LuCircleAlert size={14} /> {submitError}
                 </div>
               )}
+
               <div className="form-group">
                 <label>Rating</label>
-                {renderStarPicker(editingReview.rating, (r) =>
-                  setEditingReview({ ...editingReview, rating: r })
+                {renderStarPicker(editingReview.rating || 5, (rating) =>
+                  setEditingReview((previous) => ({ ...previous, rating }))
                 )}
               </div>
+
               <div className="form-group">
-                <label>Headline</label>
+                <label htmlFor="edit-review-title-input">Headline</label>
                 <input
+                  id="edit-review-title-input"
                   type="text"
-                  value={editingReview.title}
-                  onChange={(e) => setEditingReview({ ...editingReview, title: e.target.value })}
+                  required
+                  maxLength={120}
+                  value={editingReview.title || ''}
+                  onChange={(event) =>
+                    setEditingReview((previous) => ({
+                      ...previous,
+                      title: event.target.value,
+                    }))
+                  }
                   className="account-input"
                 />
               </div>
+
               <div className="form-group">
-                <label>Your Review</label>
+                <label htmlFor="edit-review-comment-input">Your Review</label>
                 <textarea
+                  id="edit-review-comment-input"
                   rows={4}
-                  value={editingReview.comment}
-                  onChange={(e) => setEditingReview({ ...editingReview, comment: e.target.value })}
+                  required
+                  maxLength={3000}
+                  value={editingReview.comment || ''}
+                  onChange={(event) =>
+                    setEditingReview((previous) => ({
+                      ...previous,
+                      comment: event.target.value,
+                    }))
+                  }
                   className="account-input"
                 />
               </div>
+
               <button
                 type="submit"
                 disabled={reviewSubmitting}
@@ -536,33 +803,56 @@ const ReviewSection = ({ product }) => {
         </>
       )}
 
-      {/* ── Delete Confirm Modal ── */}
       {deleteConfirmId && (
         <>
-          <div className="drawer-backdrop active" onClick={() => setDeleteConfirmId(null)} />
-          <div className="review-modal" style={{ maxWidth: '380px' }}>
+          <div
+            className="drawer-backdrop active"
+            onClick={() => {
+              if (!deletingReview) {
+                setDeleteConfirmId(null);
+                setDeleteError('');
+              }
+            }}
+          />
+          <div className="review-modal" style={{ maxWidth: '380px' }} role="dialog" aria-modal="true" aria-labelledby="delete-review-title">
             <div className="review-modal-header">
-              <h3 className="review-modal-title" style={{ fontSize: '18px' }}>Delete Review</h3>
+              <h3 id="delete-review-title" className="review-modal-title" style={{ fontSize: '18px' }}>
+                Delete Review
+              </h3>
             </div>
+
             <p style={{ marginBottom: '20px', color: '#6b7280', fontSize: '14px' }}>
-              Are you sure you want to remove this appraisal? This action cannot be undone.
+              Are you sure you want to remove this review? This action cannot be undone.
             </p>
+
+            {deleteError && (
+              <div className="review-form-error" role="alert" style={{ marginBottom: '16px' }}>
+                <LuCircleAlert size={14} /> {deleteError}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
                 className="btn btn-secondary"
                 style={{ flex: 1 }}
-                onClick={() => setDeleteConfirmId(null)}
+                disabled={deletingReview}
+                onClick={() => {
+                  setDeleteConfirmId(null);
+                  setDeleteError('');
+                }}
               >
                 Cancel
               </button>
+
               <button
                 type="button"
                 className="btn btn-primary"
                 style={{ flex: 1, background: '#dc2626', boxShadow: 'none' }}
+                disabled={deletingReview}
                 onClick={() => handleDeleteReview(deleteConfirmId)}
               >
-                Delete
+                {deletingReview ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           </div>
