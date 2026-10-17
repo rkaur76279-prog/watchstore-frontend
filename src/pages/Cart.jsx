@@ -73,7 +73,7 @@ const Cart = () => {
                           <span>Strap: {item.strap}</span>
                         </div>
                         <span className="cart-table-unit-price">
-                          ${item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })} each
+                          ₹{item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })} each
                         </span>
                         <button
                           type="button"
@@ -109,7 +109,7 @@ const Cart = () => {
                     </div>
 
                     <div className="cart-table-subtotal col-right">
-                      ${(item.price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₹{(item.price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 ))}
@@ -147,13 +147,13 @@ const Cart = () => {
 
                 <div className="summary-line">
                   <span>Subtotal</span>
-                  <span>${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span>₹{cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
 
                 {discount > 0 && (
                   <div className="summary-line discount-line">
                     <span>VIP Promotion (10%)</span>
-                    <span>-${discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span>-₹{discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 )}
 
@@ -171,7 +171,7 @@ const Cart = () => {
 
                 <div className="summary-line total-line">
                   <span>Total</span>
-                  <span>${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span>₹{finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
 
                 {/* Promo Code Form */}

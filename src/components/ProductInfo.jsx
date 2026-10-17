@@ -80,16 +80,16 @@ const ProductInfo = ({ product, onBuyNow }) => {
       <div className="product-info-price-block">
         <div className="product-info-price-row">
           <span className="product-info-price">
-            ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            ₹{product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </span>
           {product.originalPrice && product.originalPrice > product.price && (
             <span className="product-info-original-price">
-              ${product.originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ₹{product.originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           )}
         </div>
         <div className="product-info-financing">
-          <span>Or 4 interest-free payments of <strong>${monthlyPayment}</strong> with Klarna or Affirm.</span>
+          <span>Or 4 interest-free payments of <strong>₹{monthlyPayment}</strong> with Klarna or Affirm.</span>
         </div>
       </div>
 
@@ -201,7 +201,7 @@ const ProductInfo = ({ product, onBuyNow }) => {
             className="btn btn-primary btn-add-to-cart"
             onClick={handleAddToCart}
           >
-            ADD TO CART — ${(product.price * quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            ADD TO CART — ₹{(product.price * quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </button>
 
           {/* Wishlist Button */}

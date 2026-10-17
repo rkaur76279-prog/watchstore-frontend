@@ -91,65 +91,43 @@ const CheckoutModal = ({ isOpen, onClose }) => {
   };
 
   // Validate promo code using the existing backend API
-  const handleApplyPromo = async () => {
-    const code = promoInput.trim().toUpperCase();
 
-    if (!code) {
-      setPromoError('Please enter a promo code.');
-      return;
-    }
+// Validate promo code locally — no backend required
+const handleApplyPromo = () => {
+  const code = promoInput.trim().toUpperCase();
 
-    setPromoLoading(true);
-    setPromoError('');
+  setPromoError('');
 
-    try {
-      const headers = {
-        'Content-Type': 'application/json',
-      };
+  if (!code) {
+    setPromoError('Please enter a promo code.');
+    return;
+  }
 
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
+  if (code !== 'WELCOME10') {
+    setAppliedPromo(null);
+    setPromoError('Invalid promo code.');
+    return;
+  }
 
-      const response = await fetch('/api/promo-codes/validate', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          code,
-          cartTotal: cartSubtotal,
-        }),
-      });
+  const discountAmount = Number(
+    (cartSubtotal * 0.10).toFixed(2)
+  );
 
-      const data = await response.json();
+  const finalTotal = Math.max(
+    0,
+    Number((cartSubtotal - discountAmount).toFixed(2))
+  );
 
-      if (!response.ok || !data.success) {
-        setAppliedPromo(null);
-        setPromoError(
-          data.message || 'Invalid or expired promo code.'
-        );
-        return;
-      }
+  setAppliedPromo({
+    code: 'WELCOME10',
+    discountType: 'percentage',
+    discountValue: 10,
+    discountAmount,
+    finalTotal,
+  });
 
-      if (
-        !Number.isFinite(Number(data.finalTotal)) ||
-        Number(data.finalTotal) < 0
-      ) {
-        setAppliedPromo(null);
-        setPromoError('The server returned an invalid discount total.');
-        return;
-      }
-
-      setAppliedPromo(data);
-      setPromoInput(data.code || code);
-    } catch (error) {
-      console.error('Promo validation error:', error);
-      setPromoError(
-        'Unable to validate promo code. Please try again.'
-      );
-    } finally {
-      setPromoLoading(false);
-    }
-  };
+  setPromoInput('WELCOME10');
+};
 
   const handleRemovePromo = () => {
     setAppliedPromo(null);
@@ -477,21 +455,13 @@ const CheckoutModal = ({ isOpen, onClose }) => {
                         className="account-input promo-code-input"
                       />
 
-                      <button
-                        type="button"
-                        className="btn btn-secondary promo-apply-btn"
-                        onClick={handleApplyPromo}
-                        disabled={promoLoading}
-                      >
-                        {promoLoading ? (
-                          <LuLoader
-                            size={14}
-                            className="promo-spinner"
-                          />
-                        ) : (
-                          'APPLY'
-                        )}
-                      </button>
+                     <button
+  type="button"
+  className="btn btn-secondary promo-apply-btn"
+  onClick={handleApplyPromo}
+>
+  APPLY
+</button>
                     </div>
                   ) : (
                     <div className="promo-applied-badge">

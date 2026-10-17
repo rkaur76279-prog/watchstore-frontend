@@ -129,7 +129,7 @@ const CartDrawer = () => {
                       </div>
 
                       <div className="cart-item-price">
-                        ${(item.price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ₹{(item.price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </div>
                     </div>
                   </div>
@@ -145,7 +145,7 @@ const CartDrawer = () => {
             <div className="cart-subtotal-row">
               <span className="cart-subtotal-label">Subtotal</span>
               <span className="cart-subtotal-value">
-                ${cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                ₹{cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
             </div>
 

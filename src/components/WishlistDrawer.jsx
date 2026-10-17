@@ -97,7 +97,7 @@ const WishlistDrawer = () => {
 
                     <div className="cart-item-bottom" style={{ marginTop: '10px' }}>
                       <div className="cart-item-price">
-                        ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ₹{product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </div>
 
                       <button

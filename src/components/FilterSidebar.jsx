@@ -51,10 +51,10 @@ const FilterSidebar = ({
   ];
 
   const priceRanges = [
-    { label: "Under $10,000", min: 0, max: 10000, id: "p1" },
-    { label: "$10,000 – $15,000", min: 10000, max: 15000, id: "p2" },
-    { label: "$15,000 – $25,000", min: 15000, max: 25000, id: "p3" },
-    { label: "Over $25,000", min: 25000, max: 200000, id: "p4" }
+    { label: "Under ₹10,000", min: 0, max: 10000, id: "p1" },
+    { label: "₹10,000 – ₹15,000", min: 10000, max: 15000, id: "p2" },
+    { label: "₹15,000 – ₹25,000", min: 15000, max: 25000, id: "p3" },
+    { label: "Over ₹25,000", min: 25000, max: 200000, id: "p4" }
   ];
   const genders = ["Men", "Women", "Unisex"];
   const movements = ["Automatic"];

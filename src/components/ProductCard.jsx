@@ -83,11 +83,11 @@ const ProductCard = ({ product }) => {
         <div className="product-card-meta">
           <div className="product-card-price-container">
             <span className="product-card-price">
-              ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ₹{product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="product-card-original-price">
-                ${product.originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                ₹{product.originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
             )}
           </div>
